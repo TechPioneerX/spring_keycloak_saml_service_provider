@@ -13,22 +13,16 @@ logging:
 
 ## keycloak
 spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/auth/realms/Keneath
-      client:
-        provider:
-          keycloak:
-            issuer-uri: http://localhost:8080/auth/realms/Keneath
-            user-name-attribute: preferred_username
-        registration:
-          keycloak:
-            client-name: keneath client
-            client-id: keneath_client
-            client-secret: 816661e5-19cf-4f3d-ae70-7a1491c277b6
-            scope: openid,offline_access,profile
-            authorization-grant-type: authorization_code
+  main:
+    allow-circular-references: true
 
+keycloak:
+  client: spring_client
 
+saml:
+  keystore:
+    path: classpath:/saml/keystore.jks
+    password: 123456
+    alias: spring_client
+  url:
+    descriptor: http://localhost:8080/auth/realms/extended_custom_auth_realm/protocol/saml/descriptor

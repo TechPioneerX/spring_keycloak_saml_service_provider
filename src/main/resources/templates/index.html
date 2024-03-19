@@ -1,0 +1,74 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>index</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Optional: include a custom CSS file to override Bootstrap styles if necessary -->
+    <!-- <link rel="stylesheet" href="path/to/your/custom.css"> -->
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background-color: #f7f7f7;
+        }
+
+        .content-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .btn-login {
+            width: 100%;
+            max-width: 330px;
+            padding: 15px;
+            margin: auto;
+        }
+
+        .btn-login .btn {
+            position: relative;
+            box-sizing: border-box;
+            height: auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .btn-login .btn:focus {
+            z-index: 2;
+        }
+
+        .btn-login .btn-spring {
+            margin-bottom: -1px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .btn-login .btn-spring {
+            margin-bottom: 10px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="content-container">
+    <h3 class="text-center mb-10"><strong class="mb-2">Extended Keycloak</strong><br/>Custom Authentication</h3>
+    <a th:href="@{/saml/login}" class="btn btn-lg btn-primary btn-block btn-spring mt-4">
+        <i class="fas fa-rocket"></i> Login</a>
+</div>
+<!-- Include Bootstrap JS and its dependencies (Optional if you need responsive design or Bootstrap components that require JS like modals) -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

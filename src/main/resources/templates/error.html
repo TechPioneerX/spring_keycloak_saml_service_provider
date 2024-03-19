@@ -1,0 +1,58 @@
+<!-- error.html-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>error</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Optional: include a custom CSS file to override Bootstrap styles if necessary -->
+    <!-- <link rel="stylesheet" href="path/to/your/custom.css"> -->
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background-color: #f7f7f7;
+        }
+
+        .error-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .error-icon {
+            font-size: 2rem;
+            color: #28a745; /* Green color */
+            margin-right: 10px;
+        }
+
+        .error-message {
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+<div class="error-container">
+    <h3 class="text-center border-bottom border-gray pb-2 mb-0">Something went wrong</h3>
+    <div class="media text-muted pt-3">
+        <i class="fas fa-door-closed fa-2x fa-fw mr-2 error-icon" data-fa-transform="shrink-4"></i>
+        <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray error-message">
+            An error occurred
+        </p>
+    </div>
+</div>
+<!-- Include Bootstrap JS and its dependencies (Optional if you need responsive design or Bootstrap components that require JS like modals) -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

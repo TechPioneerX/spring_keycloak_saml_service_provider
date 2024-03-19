@@ -1,0 +1,61 @@
+<!-- welcome.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>welcome</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Optional: include a custom CSS file to override Bootstrap styles if necessary -->
+    <!-- <link rel="stylesheet" href="path/to/your/custom.css"> -->
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background-color: #f7f7f7;
+        }
+
+        .content-container {
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .badge {
+            font-size: 16px;
+        }
+
+        .btn-logout {
+            display: block;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="content-container">
+    <h3><strong>SAML 2.0 authentication!</strong><br/>You are successfully logged in!</h3>
+    <p><strong>You are logged in as <span class="badge badge-dark" th:text="${username}">null</span>.</strong></p>
+    <small>
+        <a th:href="@{/saml/logout}" class="btn btn-primary btn-lg btn-logout">
+            <i></i> Global logout
+        </a>
+        <br>
+        <a th:href="@{/saml/logout?local=true}" class="btn btn-secondary btn-lg btn-logout">
+            <i></i> Local logout
+        </a>
+    </small>
+</div>
+<!-- Include Bootstrap JS and its dependencies (Optional if you need responsive design or Bootstrap components that require JS like modals) -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

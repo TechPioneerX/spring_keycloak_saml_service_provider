@@ -1,113 +1,170 @@
 package com.keycloak.keneath.config;
 
-import com.keycloak.keneath.service.KeycloakLogoutHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
-import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
+import org.springframework.security.saml.*;
+import org.springframework.security.saml.key.KeyManager;
+import org.springframework.security.saml.metadata.ExtendedMetadata;
+import org.springframework.security.saml.metadata.MetadataDisplayFilter;
+import org.springframework.security.saml.metadata.MetadataGenerator;
+import org.springframework.security.saml.metadata.MetadataGeneratorFilter;
+import org.springframework.security.saml.parser.ParserPoolHolder;
+import org.springframework.security.saml.trust.httpclient.TLSProtocolConfigurer;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
-import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+
+
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    private static final String GROUPS = "groups";
-    private static final String REALM_ACCESS_CLAIM = "realm_access";
-    private static final String ROLES_CLAIM = "roles";
+    @Value("${keycloak.client}")
+    private String keycloakClient;
+    @Autowired
+    private SAMLEntryPoint samlEntryPoint;
+    @Autowired
+    private ExtendedMetadata extendedMetadata;
+    @Autowired
+    private SavedRequestAwareAuthenticationSuccessHandler successRedirectHandler;
+    @Autowired
+    private SAMLLogoutProcessingFilter samlLogoutProcessingFilter;
+    @Autowired
+    private SimpleUrlAuthenticationFailureHandler authenticationFailureHandler;
+    @Autowired
+    private SAMLLogoutFilter samlLogoutFilter;
+    @Autowired
+    private SAMLAuthenticationProvider samlAuthenticationProvider;
 
-    private final KeycloakLogoutHandler keycloakLogoutHandler;
+    @Autowired
+    private KeyManager keyManager;
 
-    SecurityConfig(KeycloakLogoutHandler keycloakLogoutHandler) {
-        this.keycloakLogoutHandler = keycloakLogoutHandler;
+    @Bean(name = "parserPoolHolder")
+    public ParserPoolHolder parserPoolHolder() {
+        return new ParserPoolHolder();
+    }
+
+
+    // Setup TLS Socket Factory
+    @Bean
+    public TLSProtocolConfigurer tlsProtocolConfigurer() {
+        return new TLSProtocolConfigurer();
     }
 
     @Bean
-    public SessionRegistry sessionRegistry() {
-        return new SessionRegistryImpl();
+    public SAMLDiscovery samlIDPDiscovery() {
+        return new SAMLDiscovery();
     }
 
     @Bean
-    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
-        return new RegisterSessionAuthenticationStrategy(sessionRegistry());
+    public MetadataGenerator metadataGenerator() {
+        MetadataGenerator metadataGenerator = new MetadataGenerator();
+        metadataGenerator.setEntityId(keycloakClient);
+        metadataGenerator.setExtendedMetadata(extendedMetadata);
+        metadataGenerator.setIncludeDiscoveryExtension(false);
+        metadataGenerator.setKeyManager(keyManager);
+        return metadataGenerator;
     }
 
     @Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
+    public MetadataDisplayFilter metadataDisplayFilter() {
+        return new MetadataDisplayFilter();
     }
 
+    @Bean
+    public SAMLWebSSOHoKProcessingFilter samlWebSSOHoKProcessingFilter(HttpSecurity http) throws Exception {
+        SAMLWebSSOHoKProcessingFilter samlWebSSOHoKProcessingFilter = new SAMLWebSSOHoKProcessingFilter();
+        samlWebSSOHoKProcessingFilter.setAuthenticationSuccessHandler(successRedirectHandler);
+        samlWebSSOHoKProcessingFilter.setAuthenticationManager(authenticationManagerBean(http));
+        samlWebSSOHoKProcessingFilter.setAuthenticationFailureHandler(authenticationFailureHandler);
+        return samlWebSSOHoKProcessingFilter;
+    }
 
     @Bean
-    public SecurityFilterChain resourceServerFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(new AntPathRequestMatcher("/allowUserTest/*")).hasRole("user")
-                .requestMatchers(new AntPathRequestMatcher("/allowAdminTest/*")).hasRole("admin")
-                .requestMatchers(new AntPathRequestMatcher("/")).permitAll()
-                .anyRequest()
-                .authenticated());
-        http.oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(Customizer.withDefaults()));
-        http.oauth2Login(Customizer.withDefaults())
-                .logout(logout -> logout.addLogoutHandler(keycloakLogoutHandler).logoutSuccessUrl("/"));
+    public SAMLProcessingFilter samlWebSSOProcessingFilter(HttpSecurity http) throws Exception {
+        SAMLProcessingFilter samlWebSSOProcessingFilter = new SAMLProcessingFilter();
+        samlWebSSOProcessingFilter.setAuthenticationManager(authenticationManagerBean(http));
+        samlWebSSOProcessingFilter.setAuthenticationSuccessHandler(successRedirectHandler);
+        samlWebSSOProcessingFilter.setAuthenticationFailureHandler(authenticationFailureHandler);
+        return samlWebSSOProcessingFilter;
+    }
+
+    @Bean
+    public MetadataGeneratorFilter metadataGeneratorFilter() {
+        return new MetadataGeneratorFilter(metadataGenerator());
+    }
+
+    @Bean
+    public FilterChainProxy samlFilter(HttpSecurity http) throws Exception {
+        List<SecurityFilterChain> chains = new ArrayList<>();
+        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/login/**"),
+                samlEntryPoint));
+        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/logout/**"),
+                samlLogoutFilter));
+        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/metadata/**"),
+                metadataDisplayFilter()));
+        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/SSO/**"),
+                samlWebSSOProcessingFilter(http)));
+        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/SSOHoK/**"),
+                samlWebSSOHoKProcessingFilter(http)));
+        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/SingleLogout/**"),
+                samlLogoutProcessingFilter));
+        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/discovery/**"),
+                samlIDPDiscovery()));
+        return new FilterChainProxy(chains);
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManagerBean(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.authenticationProvider(samlAuthenticationProvider);
+        return authenticationManagerBuilder.build();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http
+                .csrf().disable()
+                .httpBasic()
+                .authenticationEntryPoint(samlEntryPoint);
+        http
+                .csrf().disable()
+                .addFilterBefore(metadataGeneratorFilter(), ChannelProcessingFilter.class)
+                .addFilterAfter(samlFilter(http), BasicAuthenticationFilter.class)
+                .addFilterBefore(samlFilter(http), CsrfFilter.class);
+        http
+                .csrf().disable()
+                .authorizeRequests()
+                .antMatchers("/").permitAll()
+                .antMatchers("/saml/**").permitAll()
+                //.antMatchers("/css/**").permitAll()
+                //.antMatchers("/img/**").permitAll()
+                //.antMatchers("/js/**").permitAll()
+                .anyRequest().authenticated();
+        http
+                .csrf().disable()
+                .logout()
+                .disable();    // The logout procedure is already handled by SAML filters.
         return http.build();
     }
 
-
-    @Bean
-    public GrantedAuthoritiesMapper userAuthoritiesMapperForKeycloak() {
-        return authorities -> {
-            Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
-            var authority = authorities.iterator().next();
-            boolean isOidc = authority instanceof OidcUserAuthority;
-
-            if (isOidc) {
-                var oidcUserAuthority = (OidcUserAuthority) authority;
-                var userInfo = oidcUserAuthority.getUserInfo();
-
-                // Tokens can be configured to return roles under
-                // Groups or REALM ACCESS hence have to check both
-                if (userInfo.hasClaim(REALM_ACCESS_CLAIM)) {
-                    var realmAccess = userInfo.getClaimAsMap(REALM_ACCESS_CLAIM);
-                    var roles = (Collection<String>) realmAccess.get(ROLES_CLAIM);
-                    mappedAuthorities.addAll(generateAuthoritiesFromClaim(roles));
-                } else if (userInfo.hasClaim(GROUPS)) {
-                    Collection<String> roles = userInfo.getClaim(GROUPS);
-                    mappedAuthorities.addAll(generateAuthoritiesFromClaim(roles));
-                }
-            } else {
-                var oauth2UserAuthority = (OAuth2UserAuthority) authority;
-                Map<String, Object> userAttributes = oauth2UserAuthority.getAttributes();
-
-                if (userAttributes.containsKey(REALM_ACCESS_CLAIM)) {
-                    Map<String, Object> realmAccess = (Map<String, Object>) userAttributes.get(REALM_ACCESS_CLAIM);
-                    Collection<String> roles = (Collection<String>) realmAccess.get(ROLES_CLAIM);
-                    mappedAuthorities.addAll(generateAuthoritiesFromClaim(roles));
-                }
-            }
-            return mappedAuthorities;
-        };
-    }
-
-    Collection<GrantedAuthority> generateAuthoritiesFromClaim(Collection<String> roles) {
-        return roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(
-                Collectors.toList());
-    }
 }

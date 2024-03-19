@@ -7,22 +7,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.servlet.http.HttpServletRequest;
-import java.security.Principal;
 
 @Controller
 public class TestController {
-    @GetMapping(path = "/")
-    public ResponseEntity<Response<Void>> index() {
-        // get a successful user login
-        return ResponseEntity.ok(new Response<>(
-                HttpStatus.OK.value(),
-                true,
-                "This is root and public url"
-        ));
-    }
 
     @GetMapping(path = "/allowUserTest")
-    public ResponseEntity<Response<Void>> allowTest( Principal principal ) {
+    public ResponseEntity<Response<Void>> allowTest( /*Principal principal*/ ) {
         // get a successful user login
         return ResponseEntity.ok(new Response<>(
                 HttpStatus.OK.value(),
@@ -32,7 +22,7 @@ public class TestController {
     }
 
     @GetMapping(path = "/allowAdminTest")
-    public ResponseEntity<Response<Void>> declineTest(Principal principal) {
+    public ResponseEntity<Response<Void>> declineTest( /*Principal principal*/ ) {
         // get a successful user login
         return ResponseEntity.ok(new Response<>(
                 HttpStatus.OK.value(),

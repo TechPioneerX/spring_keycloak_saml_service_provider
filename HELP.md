@@ -4,7 +4,7 @@
 
 ## Getting auth token
 
-### 1. Get access token from 
+### 1. Get access token from
 http://localhost:8080/auth/realms/Keneath
 
 This api returns
@@ -43,3 +43,7 @@ Once the access token has expired, we can refresh it by sending a POST request t
 'refresh_token': refresh_token_from_previous_request,
 'grant_type': 'refresh_token'
 }
+
+
+https://chat.openai.com/share/c243b55c-18b5-4958-9ff3-341f9ee8f44a
+
