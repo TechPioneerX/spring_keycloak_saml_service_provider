@@ -17,12 +17,12 @@ spring:
     allow-circular-references: true
 
 keycloak:
-  client: spring_client
+  client: client_java_module
 
 saml:
   keystore:
     path: classpath:/saml/keystore.jks
     password: 123456
-    alias: spring_client
+    alias: client_java_module
   url:
-    descriptor: http://localhost:8080/auth/realms/extended_custom_auth_realm/protocol/saml/descriptor
+    descriptor: http://localhost:8080/auth/realms/extended_custom_auth_realm_test/protocol/saml/descriptor
